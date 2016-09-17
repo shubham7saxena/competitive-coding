@@ -1,0 +1,98 @@
+
+#include<bits/stdc++.h>
+ 
+using namespace std;
+
+#define mod 1000000000
+#define loop(i,a,b) for(int i=a;i<b;i++)
+#define all(c) (c).begin(),(c).end()
+#define nl cout<<"\n"
+#define sz(a) (int)(a).size()
+#define len(a) (int)a.length()
+#define pb push_back
+#define mp make_pair
+
+typedef vector<int> vi;
+typedef vector<vi> vvi;
+typedef pair<int,int> ii;
+typedef vector<ii> vii;
+typedef vector<vii> vvii;
+
+typedef unsigned long long ull;
+typedef long long ll;
+
+const int INF = 2000000000;
+
+ll gcd(ll a, ll b) { int temp; while(b > 0) { temp = a%b; a = b; b = temp; } return a; }
+ll lcm(ll a, ll b) { return a/gcd(a,b)*b; }
+ll modpow(ll a, ll n) { ll p = 1; while(n) { if (n%2) p = p*a%mod; n/=2; a = a*a%mod; } return p; }
+
+#define N 20
+#define MAX (1+(1<<6)) // Why? :D
+#define inf 0x7fffffff
+
+int arr[N];
+int tree[MAX];
+
+void build_tree(int node, int a, int b) {
+    if(a > b) return;
+    
+    if(a == b) {
+            tree[node] = arr[a];
+        return;
+    }
+    
+    build_tree(node*2, a, (a+b)/2); // Init left child
+    build_tree(node*2+1, 1+(a+b)/2, b); // Init right child
+    
+    tree[node] = max(tree[node*2], tree[node*2+1]); // Init root value
+}
+
+/**
+ * Increment elements within range [i, j] with value "value"
+ */
+void update_tree(int node, int a, int b, int i, int j, int value) {
+    
+    if(a > b || a > j || b < i) // Current segment is not within range [i, j]
+        return;
+    
+    if(a == b) { // Leaf node
+            tree[node] += value;
+            return;
+    }
+
+    update_tree(node*2, a, (a+b)/2, i, j, value); // Updating left child
+    update_tree(1+node*2, 1+(a+b)/2, b, i, j, value); // Updating right child
+
+    tree[node] = max(tree[node*2], tree[node*2+1]); // Updating root with max value
+}
+
+/**
+ * Query tree to get max element value within range [i, j]
+ */
+int query_tree(int node, int a, int b, int i, int j) {
+    
+    if(a > b || a > j || b < i) return -inf; // Out of range
+
+    if(a >= i && b <= j) // Current segment is totally within range [i, j]
+        return tree[node];
+
+    int q1 = query_tree(node*2, a, (a+b)/2, i, j); // Query left child
+    int q2 = query_tree(1+node*2, 1+(a+b)/2, b, i, j); // Query right child
+
+    int res = max(q1, q2); // Return final result
+    
+    return res;
+}
+
+int main() {
+    for(int i = 0; i < N; i++) arr[i] = 1;
+
+    build_tree(1, 0, N-1);
+
+    update_tree(1, 0, N-1, 0, 6, 5); // Increment range [0, 6] by 5
+    update_tree(1, 0, N-1, 7, 10, 12); // Incremenet range [7, 10] by 12
+    update_tree(1, 0, N-1, 10, N-1, 100); // Increment range [10, N-1] by 100
+
+    cout << query_tree(1, 0, N-1, 0, N-1) << endl; // Get max element in range [0, N-1]
+}
